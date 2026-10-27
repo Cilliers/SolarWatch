@@ -1,0 +1,6 @@
+starlette>=0.37
+uvicorn>=0.29
+requests>=2.31
+PyYAML>=6.0
+cryptography>=42
+tzdata>=2024.1   # time-zone database, for slim containers and Windows

@@ -1,0 +1,88 @@
+# Builds the SolarWatch image and publishes it to GitHub Container Registry (ghcr.io).
+#   push to main   -> ghcr.io/<owner>/<repo>:latest  (+ :sha-<commit>)
+#   tag v1.2.3     -> :1.2.3, :1.2, :1 and :latest
+#   pull request   -> build and test only, nothing published
+# Images are built for amd64 (PCs, servers, most NAS) and arm64 (Raspberry Pi 4/5, ARM NAS).
+name: Publish Docker image
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: PYTHONPATH=.:tests python -m unittest discover -s tests -t tests -v
+
+  image:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Sign in to ghcr.io
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Work out tags and labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+          labels: |
+            org.opencontainers.image.title=SolarWatch
+            org.opencontainers.image.description=Self-hosted monitor for residential hybrid solar systems across vendor clouds
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke-test the image
+        if: github.event_name != 'pull_request'
+        run: |
+          img="ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]'):sha-${GITHUB_SHA::7}"
+          docker run -d --name sw -p 8080:8080 -e SOLARWATCH_CONFIG=/app/config.demo.yaml "$img"
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/healthz && break; sleep 2; done
+          curl -fsS http://127.0.0.1:8080/api/overview > /dev/null
+          docker logs sw
+          docker rm -f sw

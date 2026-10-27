@@ -1,0 +1,10 @@
+.env
+config.yaml
+data/
+tests/
+**/__pycache__/
+**/*.pyc
+*.db
+*.db-*
+*.zip
+.git/

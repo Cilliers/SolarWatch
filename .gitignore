@@ -1,0 +1,7 @@
+config.yaml
+.env
+data/*
+!data/.gitkeep
+__pycache__/
+*.pyc
+*.zip

@@ -1,0 +1,13 @@
+# Try SolarWatch with simulated sites - no credentials needed:
+#   python -m solarwatch --config config.demo.yaml
+server: {host: 127.0.0.1, port: 8080}
+database: data/demo.db
+poll_interval: 60
+
+accounts:
+  - {id: demo-victron, platform: demo, as_platform: victron, sites: 3, quirks: {3: lowsoc}}
+  - {id: demo-sunsynk, platform: demo, as_platform: sunsynk, sites: 3, name_offset: 3, quirks: {2: offline}}
+  - {id: demo-goodwe, platform: demo, as_platform: goodwe_plus, sites: 2, name_offset: 6, quirks: {1: fault}}
+  - {id: demo-deye, platform: demo, as_platform: deye, sites: 2, name_offset: 8}
+  - {id: demo-lux, platform: demo, as_platform: luxpower, sites: 1, name_offset: 10}
+  - {id: demo-sma, platform: demo, as_platform: sma, sites: 1, name_offset: 11}

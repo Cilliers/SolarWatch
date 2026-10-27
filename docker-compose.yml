@@ -1,0 +1,19 @@
+services:
+  solarwatch:
+    image: ghcr.io/OWNER/REPO:latest
+    container_name: solarwatch
+    restart: unless-stopped
+    ports:
+      # change the left-hand number to use another port on your machine, e.g. "9090:8080"
+      - "8080:8080"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      TZ: Africa/Johannesburg
+      # run as your own user so you can edit files in ./data (find yours with `id -u` / `id -g`)
+      PUID: "1000"
+      PGID: "1000"
+    volumes:
+      # config.yaml, the database and saved tokens all live here
+      - ./data:/app/data

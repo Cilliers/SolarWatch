@@ -1,0 +1,99 @@
+# SolarWatch configuration.
+# Any value can pull from an environment variable: ${NAME} or ${NAME:-default}.
+# Keep passwords and tokens in a .env file (see .env.example), not in this file.
+
+server:
+  host: 0.0.0.0
+  port: 8080
+
+database: data/solarwatch.db
+poll_interval: 300        # seconds between polls per account (minimum 60). The clouds
+                          # themselves only refresh every ~5 min, so faster buys nothing.
+retention_days: 90        # history kept for charts
+
+alerts:
+  low_soc: 20             # % - warn below this
+  stale_minutes: 30       # no upload from the system for this long = offline
+
+# HTTP basic auth for the dashboard. Strongly recommended if reachable from a network.
+auth:
+  username: admin
+  password: ${SOLARWATCH_PASSWORD}
+
+accounts:
+  # --- Victron VRM ----------------------------------------------------------------
+  # Create a token at vrm.victronenergy.com -> Preferences -> Integrations -> Access tokens.
+  # An installer account's token covers every site that account can see.
+  - id: victron
+    platform: victron
+    access_token: ${VRM_TOKEN}
+    # site_ids: [123456, 234567]     # optional: limit to these installations
+    # (or username/password instead of access_token)
+
+  # --- Sunsynk Connect ------------------------------------------------------------
+  # Same email/password as the Sunsynk Connect app. Accounts with MFA can't use the API.
+  - id: sunsynk
+    platform: sunsynk
+    username: ${SUNSYNK_USER}
+    password: ${SUNSYNK_PASSWORD}
+    timezone: Africa/Johannesburg    # used for "today" totals
+    # base_url: https://pv.inteless.com   # for Deye / Inteless accounts
+    # plant_ids: [12345]                  # optional filter
+
+  # --- GoodWe SEMS+ ---------------------------------------------------------------
+  # GoodWe's monitoring portal (semsplus.goodwe.com). Same email/password as the SEMS+ app.
+  # Owner and installer accounts both work.
+  - id: goodwe
+    platform: goodwe_plus
+    username: ${SEMSPLUS_USER}
+    password: ${SEMSPLUS_PASSWORD}
+    timezone: Africa/Johannesburg
+    # gateway: https://eu-gateway.semsportal.com   # normally taken from the login reply
+    # station_ids: ["..."]                          # optional filter
+
+  # --- SMA Sunny Portal (ennexOS) --------------------------------------------------
+  # mode: portal uses your Sunny Portal login; solar power and yield only.
+  - id: sma
+    platform: sma
+    mode: portal
+    username: ${SMA_USER}
+    password: ${SMA_PASSWORD}
+    timezone: Africa/Johannesburg
+    # plant_ids: ["1234567"]
+  # Official SMA Monitoring API (needs an SMA API contract; full battery/grid data):
+  # - id: sma-official
+  #   platform: sma
+  #   mode: monitoring_api
+  #   client_id: ${SMA_CLIENT_ID}
+  #   client_secret: ${SMA_CLIENT_SECRET}
+  #   refresh_token: ${SMA_REFRESH_TOKEN}   # from the owner's consent; refreshed copies are kept in data/
+
+  # --- Deye Cloud -----------------------------------------------------------------
+  # Create a free app at developer.deyecloud.com (sign in with your Deye Cloud account)
+  # to get an App ID and App Secret. Installer/business accounts: also set company_id.
+  - id: deye
+    platform: deye
+    app_id: ${DEYE_APP_ID}
+    app_secret: ${DEYE_APP_SECRET}
+    email: ${DEYE_EMAIL}
+    password: ${DEYE_PASSWORD}
+    timezone: Africa/Johannesburg
+    # base_url: https://us1-developer.deyecloud.com   # default is the EU data centre
+    # company_id: 12345
+
+  # --- LuxPower Tek ---------------------------------------------------------------
+  # Same login as the LuxPower web portal / app.
+  - id: luxpower
+    platform: luxpower
+    username: ${LUX_USER}
+    password: ${LUX_PASSWORD}
+    base_url: https://af.luxpowertek.com    # af (Africa/Middle East), eu, na, sea, server (China);
+                                           # https://monitor.eg4electronics.com for EG4
+    timezone: Africa/Johannesburg
+    # plant_ids: ["12345"]
+
+  # Add as many accounts per platform as you need, each with a unique id:
+  # - id: sunsynk-client-b
+  #   platform: sunsynk
+  #   ...
+  # Set `enabled: false` to pause an account without deleting it.
