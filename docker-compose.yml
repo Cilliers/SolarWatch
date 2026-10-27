@@ -1,6 +1,6 @@
 services:
   solarwatch:
-    image: ghcr.io/OWNER/REPO:latest
+    image: ghcr.io/cilliers/solarwatch:latest
     container_name: solarwatch
     restart: unless-stopped
     ports:

@@ -38,14 +38,14 @@ Works on any machine with Docker: a home server, a NAS (Synology, Unraid, TrueNA
 Raspberry Pi 4/5 or a cloud VM. You need [Docker](https://docs.docker.com/get-docker/) with
 the Compose plugin (`docker compose version` should print a version).
 
-A ready-made image is published at `ghcr.io/OWNER/REPO` for both regular PCs/servers and
+A ready-made image is published at `ghcr.io/cilliers/solarwatch` for both regular PCs/servers and
 ARM boards, so there is nothing to build.
 
 1. **Get the two files** into a new folder:
    ```bash
    mkdir solarwatch && cd solarwatch
-   curl -fsSLO https://raw.githubusercontent.com/OWNER/REPO/main/docker-compose.yml
-   curl -fsSL  https://raw.githubusercontent.com/OWNER/REPO/main/.env.example -o .env
+   curl -fsSLO https://raw.githubusercontent.com/Cilliers/SolarWatch/main/docker-compose.yml
+   curl -fsSL  https://raw.githubusercontent.com/Cilliers/SolarWatch/main/.env.example -o .env
    ```
 2. **Add your logins:** fill in `.env`: a dashboard password (`SOLARWATCH_PASSWORD`) and the
    logins for the platforms you use. Leave the rest blank.
